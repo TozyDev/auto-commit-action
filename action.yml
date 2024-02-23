@@ -1,0 +1,31 @@
+name: Auto Commit
+description: Automatically Git commit with github-actions[bot] user via GitHub API
+author: TozyDev
+inputs:
+  path:
+    description: The paths of the files to commit
+    default: .
+
+  message:
+    description: The commit message
+    default: Update via Auto Commit Action
+
+  repository:
+    description: The repository (owner/repo) to commit
+    default: ${{ github.repository }}
+
+  branch:
+    description: The branch to commit
+    default: ${{ github.ref_name }}
+
+outputs:
+  url:
+    description: The URL of the commit
+
+runs:
+  using: node20
+  main: 'dist/index.js'
+
+branding:
+  icon: git-commit
+  color: green
