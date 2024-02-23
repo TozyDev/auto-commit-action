@@ -1,0 +1,89 @@
+name: Release
+on:
+  workflow_run:
+    workflows: [ Build ]
+    types: [ completed ]
+    branches: [ main ]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    outputs:
+      release-type: ${{ steps.lets-release.outputs.release-type }}
+      version: ${{ steps.lets-release.outputs.next-version }}
+      major: ${{ steps.lets-release.outputs.major }}
+      notes: ${{ steps.lets-release.outputs.release-notes }}
+
+    steps:
+      - name: Let's Release
+        id: lets-release
+        uses: TozyDev/lets-release@v1
+
+  dist:
+    needs: check
+    if: ${{ needs.check.outputs.release-type != 'none' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: latest
+          run_install: |
+            - args: [--frozen-lockfile]
+
+      - name: Compile project
+        run: pnpm compile
+
+      - name: Commit dist
+        uses: ./
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+        with:
+          path: dist
+          message: "chore: update dist files"
+
+  release:
+    needs: [ check, dist ]
+    if: ${{ needs.check.outputs.release-type != 'none' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    concurrency:
+      group: "${{ github.workflow }}-${{ github.event.number || github.ref }}-release"
+      cancel-in-progress: true
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-tags: true
+
+      - name: Write release notes to file
+        run: echo "${{ needs.check.outputs.notes }}" > release-notes.md
+
+      - run: gh release create v${{ needs.check.outputs.version }} --title ${{ needs.check.outputs.version }} -F release-notes.md
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Tag major tag
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git tag -d v${{ needs.check.outputs.major }} || true
+          git push origin :v${{ needs.check.outputs.major }} || true
+          git tag -a v${{ needs.check.outputs.major }} -m "Release v${{ needs.check.outputs.major }}"
+          git push origin v${{ needs.check.outputs.major }}
