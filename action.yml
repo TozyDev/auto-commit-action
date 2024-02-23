@@ -1,5 +1,5 @@
 name: Auto Commit Action
-description: Automatically Git commit with github-actions[bot] user via GitHub API
+description: Automatically Git commit via GitHub GraphQL API
 author: TozyDev
 inputs:
   path:
