@@ -1,4 +1,4 @@
-name: Auto Commit
+name: Auto Commit Action
 description: Automatically Git commit with github-actions[bot] user via GitHub API
 author: TozyDev
 inputs:
@@ -24,7 +24,7 @@ outputs:
 
 runs:
   using: node20
-  main: 'dist/index.js'
+  main: dist/index.js
 
 branding:
   icon: git-commit
