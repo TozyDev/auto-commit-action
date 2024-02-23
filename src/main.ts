@@ -14,7 +14,7 @@ async function main() {
     const inputs = getInputs()
     await execGitAdd(inputs.path)
 
-    const {stdout: diff} = await execGitDiff(["--cached", "--name-status"], inputs.path)
+    const {stdout: diff} = await execGitDiff(["--cached", "--name-status", "--no-renames"], inputs.path)
     const fileAdditions = new Set<FileAddition>()
     const fileDeletions = new Set<FileDeletion>()
     diff.split("\n").forEach(line => {

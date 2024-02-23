@@ -30306,7 +30306,7 @@ function main() {
     return __awaiter(this, void 0, void 0, function* () {
         const inputs = (0, inputs_1.getInputs)();
         yield (0, git_1.execGitAdd)(inputs.path);
-        const { stdout: diff } = yield (0, git_1.execGitDiff)(["--cached", "--name-status"], inputs.path);
+        const { stdout: diff } = yield (0, git_1.execGitDiff)(["--cached", "--name-status", "--no-renames"], inputs.path);
         const fileAdditions = new Set();
         const fileDeletions = new Set();
         diff.split("\n").forEach(line => {
